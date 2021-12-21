@@ -22,12 +22,14 @@ const Spinner = () => (
 export default function App() {
   const [loading, setLoading] = useState(true);
   const [images, setImages] = useState([]);
+  const [emotions, setEmotions] = useState([]);
 
   useEffect(() => {
     fetch("/api/images")
       .then((response) => response.json())
       .then((data) => {
         setImages(data.photos);
+        setEmotions(data.emotions);
         setLoading(false);
       });
   }, []);
@@ -42,7 +44,7 @@ export default function App() {
         <div className="itemContainer">
           {images.slice(0, 9).map((item, idx) => (
             <div className="item" key={item}>
-              <img src={item} style={{ width: "100%" }} />
+              <img src={item} style={{ width: "100%" }} alt={emotions[idx]} />
 			  <div className="itemNumber">{idx + 1}</div>
             </div>
           ))}

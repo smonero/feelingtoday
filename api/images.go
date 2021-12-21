@@ -46,7 +46,7 @@ type RawPhotosResponse struct {
 	} `json:"photos"`
 }
 
-func searchPhotos(query string) (*Response, error) {
+func searchPhotos(animal string, emotion string) (*Response, error) {
 	req, err := http.NewRequest(http.MethodGet, "https://www.flickr.com/services/rest/", nil)
 	if err != nil {
 		return nil, err
@@ -61,7 +61,7 @@ func searchPhotos(query string) (*Response, error) {
 	q.Add("sort", "relevance")
 	q.Add("per_page", "15")
 	q.Add("api_key", apiKey)
-
+	query := animal + " " + emotion
 	q.Add("text", query)
 
 	req.URL.RawQuery = q.Encode()
@@ -87,13 +87,15 @@ func searchPhotos(query string) (*Response, error) {
 
 	for _, photo := range parsed.Photos.Photo {
 		ret.Photos = append(ret.Photos, photo.URL)
+		ret.Emotions = append(ret.Emotions, emotion)
 	}
 
 	return ret, nil
 }
 
 type Response struct {
-	Photos []string `json:"photos"`
+	Photos   []string `json:"photos"`
+	Emotions []string `json:"emotions"`
 }
 
 func Handler(w http.ResponseWriter, r *http.Request) {
@@ -112,7 +114,7 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 		go func(emotion string) {
 			defer wg.Done()
 
-			resp, err := searchPhotos(animal + " " + emotion)
+			resp, err := searchPhotos(animal, emotion)
 			if err != nil {
 				return
 			}
@@ -120,6 +122,7 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 
 		}(emotions[idx])
 
+		// why is this 4?
 		if i == 4 {
 			break
 		}
